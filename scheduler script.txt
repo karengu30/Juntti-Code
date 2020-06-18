@@ -1,0 +1,12 @@
+import schedule
+import time
+import os
+
+def job():
+    os.system("docker run --privileged --name cam -ti alexellis2/streaming:07-05-2018 5axb-0gep-3hhe-2hh3")
+              
+schedule.every().day.at("19:35:00").do(job)
+
+while True:
+        schedule.run_pending()
+        time.sleep(1)
