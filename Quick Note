@@ -1,0 +1,11 @@
+#Quick Note for Karen,
+
+#When we use the docker the first line into the terminal is such:
+
+docker run --privileged --name cam -ti alexellis2/streaming:07-05-2018 xxxx-xxxx-xxxx-xxxx
+
+#Where xxxx-xxxx-xxxx-xxxx is the youtube stream key found in our raspi database.
+
+#To remove the stream, usually we just hit ctrl-c to interrupt, and then the following:
+
+docker rm -f cam
