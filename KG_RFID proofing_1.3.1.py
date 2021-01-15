@@ -36,12 +36,22 @@ class ExcelAnalysis:
         output_date = datetime.strptime(input_date, '%m/%d/%Y') #converts input date (string) into a datetime function
         return(output_date)
 
+    def something2(self, SD, ED):
+        self.start_date= SD
+        self.end_date= ED
+        for i in range(len(self.df['HEXTagID'].unique())):
+            print(self.df['HEXTagID'].unique()[i])
+            print(len(self.df[self.df.HEXTagID==self.df['HEXTagID'].unique()[i]]))
+            self.something(str(self.df['HEXTagID'].unique()[i]), SD, ED)
+            self.exportdata()
+            print("Exported Data")
+
     def something(self, fishid, start_date, end_date):
         #start_date = pd.to_datetime(start_date)
         #end_date = pd.to_datetime(end_date)
         self.fishid=fishid
-        self.start_date= start_date
-        self.end_date= end_date
+        #self.start_date= start_date
+        #self.end_date= end_date
         start_date = self.convertdate(start_date) #converts start date to date format
         end_date = self.convertdate(end_date)
 
@@ -72,7 +82,7 @@ class ExcelAnalysis:
                 self.freqlist.append(0) #add 0 to the list of RFID readings for that dayhour
         d = {'datetimes': self.datetimelist, 'occurence': self.freqlist}
         self.df_datetimefreq = pd.DataFrame(d) #dataframe pairing list of dayhours with number of RFID readings for each dayhour
-        print(self.df_datetimefreq)
+        print(self.df_datetimefreq.head())
 
     # EXPORT DATAFRAME AS .xlsx FILE (TYPE IN PREFERRED FILEPATH/NAME)
     def exportdata(self):
