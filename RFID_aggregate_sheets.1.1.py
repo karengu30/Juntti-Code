@@ -1,5 +1,6 @@
 #reads all of the indicated tagmanager sheets into a dictionary of dataframes
 #get_fish() compiles all RFID readings between dataframes for the selected fishid, and outputs them as one .xlsx file
+#contains lines (.drop_columns and .drop_duplicates) that remove 'Scan Date' and 'Scan Time' columns, and remove duplicate RFID readings, but increase the execution time
 
 import numpy as np
 import pandas as pd
