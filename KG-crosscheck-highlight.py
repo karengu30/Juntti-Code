@@ -51,7 +51,7 @@ class CrossCheck:
         self.rfid_df = self.rfid_df[self.rfid_df.ScanDateTime >= self.start_dt]
         self.rfid_df = self.rfid_df[self.rfid_df.ScanDateTime <= self.end_dt]
 
-        self.rfid_df.to_excel(output_filepath + 'RFID_OutputTest_'+ date +'.xlsx')
+        self.rfid_df.to_excel(output_filepath + 'RFID_OutputTest_FEMALE_AQ_08-14_'+ date +'.xlsx')
         return(self.rfid_df)
 
     def enter_and_trim_boris_df(self, keep_behaviors): # EVENTUALLY USE KEEP BEHAVIORS TO EXCLUDE UNWANTED BEHAVIORS
@@ -59,18 +59,27 @@ class CrossCheck:
         self.boris_df = pd.read_excel(self.bpathname)
         self.boris_df = self.boris_df.loc[self.boris_df['Behavior'].isin(keep_behaviors)]
         self.boris_df = self.boris_df[self.boris_df.Subject == self.btarget]
-        self.boris_df.to_excel(output_filepath + 'BORIS_OutputTest_'+ date +'.xlsx')
+        #self.boris_df.to_excel(output_filepath + 'BORIS_OutputTest_WITHDIVIDEDTIMES_'+ date +'.xlsx')
         return(self.boris_df)
 
-    def boris_convert_times(self):
+    def boris_convert_times(self, boris_first_acutaltime):
         print("CONVERTING BORIS TIMES")
         self.boris_first_entry = self.boris_df['Start (s)'].iloc[0]  #returns first entry event (first row in 'Start (s)' for Fish 2)
+        self.boris_first_actualtime = boris_first_acutaltime
         self.boris_df['Start (s)'] = self.boris_df['Start (s)'] - self.boris_first_entry #subtracts the initial (s) count of the first entry from every pot entry event
         self.boris_df['Stop (s)'] = self.boris_df['Stop (s)'] - self.boris_first_entry #subtracts the initial (s) count of the first entry from every pot exit event
-        self.rfid_first_entry = self.rfid_df.ScanDateTime.iloc[0] #get datetime value of first RFID pot event
-        self.boris_df['Start (s)'] = self.rfid_first_entry + pd.to_timedelta(self.boris_df['Start (s)'], 's') #change BORIS entry column by adding timedelta of seconds to first RFID pot entry time
-        self.boris_df['Stop (s)'] = self.rfid_first_entry + pd.to_timedelta(self.boris_df['Stop (s)'], 's') #change BORIS exit column by adding timedelta of seconds to first RFID pot entry time
-        self.boris_df.to_excel(output_filepath + 'BORIS_OutputTest_converttimes_'+ date +'.xlsx')
+        #self.rfid_first_entry = self.rfid_df.ScanDateTime.iloc[0] #get datetime value of first RFID pot event
+        self.boris_df['Start (s)'] = self.boris_first_actualtime + pd.to_timedelta(self.boris_df['Start (s)'], 's') #change BORIS entry column by adding timedelta of seconds to first RFID pot entry time
+        self.boris_df['Stop (s)'] = self.boris_first_actualtime + pd.to_timedelta(self.boris_df['Stop (s)'], 's') #change BORIS exit column by adding timedelta of seconds to first RFID pot entry time
+        self.boris_df.to_excel(output_filepath + 'BORIS_OutputTest_circling_converttimes_new'+ date +'.xlsx')
+        return(self.boris_df)
+
+    def boris_convert_times_new(self, video_beginning):
+        print("NEW BORIS TIME CONVERSION")
+        self.video_beginning = video_beginning
+        self.boris_df['Start (s)'] = self.video_beginning + pd.to_timedelta(self.boris_df['Start (s)'], unit='s') #change BORIS entry column by adding timedelta of seconds to first RFID pot entry time
+        self.boris_df['Stop (s)'] = self.video_beginning + pd.to_timedelta(self.boris_df['Stop (s)'], unit='s')
+        self.boris_df.to_excel(output_filepath + 'BORIS_OutputTest_converttimes_FEMALE_AQ_08-14' + date +'.xlsx')
         return(self.boris_df)
 
     def match_pot_antennae(self, boris_df, rfid_df):
@@ -100,6 +109,9 @@ class CrossCheck:
             #^the two lines above (based on assumption that first non-793D RFID reading after 07:50 matches first BORIS 'Fish 2' pot entry event),
             #add a column to rfid_df listing the inferred pot side based on the existing AntennaID in the RFID row
             return(rfid_df)
+
+    #def convert_pot_antennae(self):
+
 
     def sort_by_behavior(self, df):
         print('SORTING SPREADSHEET BY LEFT/RIGHT POT BEHAVIOR...')
@@ -143,25 +155,40 @@ class CrossCheck:
 
 
 keep_subjects = []
-keep_behaviors = ['Left pot occupied', 'Right pot occupied']
+#keep_behaviors = ['Left pot occupied', 'Right pot occupied']
+keep_behaviors = ['Pot occupied']
 
-boris_filename = '02-09-2021_Hour3-4correct' #file name of the boris spreadsheet to be read in
-boris_filepath = 'C:/Users/karen/OneDrive/Documents/0_RESEARCH/RFID/BORIS/' #filepath of the boris spreadsheet to be read in
+boris_filename = 'BORIS_20210919_1230-1430_AggregatedEvents_AQ' #file name of the boris spreadsheet to be read in
+boris_filepath = 'C:/Users/karen/OneDrive/Documents/0_RESEARCH/RFID/BORIS/AQ projects/2021-09-19 AQ/' #filepath of the boris spreadsheet to be read in
 #boris_video_length = '11:55:00' #string of the video length ('HH:MM:SS')- can be found by looking at video length in lab drive
 RFID_filepath = 'C:/Users/karen/OneDrive/Documents/0_RESEARCH/RFID/' #enter common filepath for RFID tagmanager files (for convenience)
-RFID_filename = '02-11-2021_tagmanager_ALL' #enter filename and filepath (and .xlsx) of RFID spreadsheet with a daterange containing the date in question
-output_filepath = 'C:/Users/karen/OneDrive/Documents/0_RESEARCH/RFID/BORIS/' #this can stay the same between uses- filepath for where you want the file to go
-date = '2021-02-09' #string of the year, month and date of the BORIS reading ('YYYY-MM-DD')
-start_time = '10:00:00.00'
-end_time = '12:00:00.00'
-RFIDtarget = '3D6.1D599FDD07'
-BORIStarget = 'Females'
+RFID_filename = '09-20-2021_tagmanager_all' #enter filename and filepath (and .xlsx) of RFID spreadsheet with a daterange containing the date in question
+output_filepath = 'C:/Users/karen/OneDrive/Documents/0_RESEARCH/RFID/BORIS/AQ projects/2021-09-19 AQ/' #this can stay the same between uses- filepath for where you want the file to go
+date = '2021-09-19' #string of the year, month and date of the BORIS reading ('YYYY-MM-DD')
+start_time = '12:30:25.00'
+end_time = '14:30:00.00'
+RFIDtarget = '3D6.1D59B07932' #3D6.1D599FDD07
+BORIStarget = 'Male 1' #Females
+#RFIDtarget = '3D6.1D59B07974'
+#BORIStarget = 'Females'
+video_beginning = datetime.strptime(('2021-09-19 ' + '12:30:25.00'), '%Y-%m-%d %H:%M:%S.%f')
 
 cc = CrossCheck(boris_filename, boris_filepath, RFID_filename, RFID_filepath, output_filepath, date, start_time, end_time, RFIDtarget, BORIStarget)
 
-rfid_trimmed_matched_filepath = output_filepath + 'RFID_MatchPot_2021-02-09.xlsx'
-rfid_trimmed_matched = pd.read_excel(rfid_trimmed_matched_filepath)
-boris_converted_fp = output_filepath + 'BORIS_OutputTest_converttimes_2021-02-09.xlsx'
-boris_converted = pd.read_excel(boris_converted_fp)
+"""
+keep_behaviors = ['Pot occupied']   #['Circling'] ['Pot occupied']
+x = cc.enter_and_trim_boris_df(keep_behaviors)
+x = cc.boris_convert_times_new(video_beginning)
+y = cc.enter_and_trim_rfid_df()
+# go to colored_raster_07-21-2021.py
+# use the outputted files to input into colored raster
+# some issue with antennae id stuff
+
+"""
+
+#rfid_trimmed_matched_filepath = output_filepath + 'RFID_MatchPot_2021-02-09.xlsx'
+#rfid_trimmed_matched = pd.read_excel(rfid_trimmed_matched_filepath)
+#boris_converted_fp = output_filepath + 'BORIS_OutputTest_converttimes_2021-02-09.xlsx'
+#boris_converted = pd.read_excel(boris_converted_fp)
 
 #https://stackoverflow.com/questions/47727339/plot-start-end-time-slots-matplotlib-python
